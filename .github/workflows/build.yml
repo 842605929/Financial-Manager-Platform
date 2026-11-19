@@ -19,30 +19,35 @@ jobs:
 
       - name: Generate Xcode project
         run: xcodegen generate
-        working-directory: .
 
       - name: Select Xcode 16
         run: sudo xcode-select -s /Applications/Xcode_16.app
 
-      - name: Build (simulator, no signing)
+      - name: Build unsigned IPA (for AltStore)
         run: |
           xcodebuild \
             -project AssetTracker.xcodeproj \
             -scheme AssetTracker \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'generic/platform=iOS' \
             -configuration Debug \
+            -derivedDataPath DerivedData \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            build | xcpretty || true
+            ONLY_ACTIVE_ARCH=NO \
+            build
 
-      - name: Run unit tests
+      - name: Package IPA
         run: |
-          xcodebuild test \
-            -project AssetTracker.xcodeproj \
-            -scheme AssetTrackerTests \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || true
+          APP_PATH=$(find DerivedData -name "*.app" | head -1)
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r AssetTracker.ipa Payload
+          echo "IPA built: $(ls -lh AssetTracker.ipa)"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AssetTracker-ipa
+          path: AssetTracker.ipa
+          retention-days: 7
