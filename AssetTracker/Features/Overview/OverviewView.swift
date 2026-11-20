@@ -151,7 +151,7 @@ struct OverviewView: View {
                         subtitle: "\(item.count) 项",
                         value: item.value,
                         total: result.totalCNY,
-                        ratio: item.value / max(result.byBank.first?.value ?? 1, 1),
+                        ratio: Double(truncating: (item.value / max(result.byBank.first?.value ?? 1, 1)) as NSDecimalNumber),
                         color: Color.barColors[idx % Color.barColors.count]
                     )
                 }
@@ -168,7 +168,7 @@ struct OverviewView: View {
                         subtitle: item.currency.name,
                         value: item.cny,
                         total: result.totalCNY,
-                        ratio: item.cny / max(result.byCurrency.first?.cny ?? 1, 1),
+                        ratio: Double(truncating: (item.cny / max(result.byCurrency.first?.cny ?? 1, 1)) as NSDecimalNumber),
                         color: Color.barColors[idx % Color.barColors.count]
                     )
                 }
